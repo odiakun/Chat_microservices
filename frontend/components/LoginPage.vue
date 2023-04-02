@@ -55,7 +55,7 @@
         ></b-form-select>
     </b-form-group>
 
-        <b-button variant="dark" size="lg" @click="PrintNick()">Enter the chat </b-button>
+        <b-button variant="dark" size="lg" @click="Log()">Enter the chat </b-button>
 
     </div>
     </div>
@@ -63,11 +63,11 @@
 
 
 <script>
-    // import axios from "axios";
+     import axios from "axios";
 
     export default {
         env: {
-
+            LoginUrl: process.env.HPDS_LOGIN_URL
         },
         data(){
             return{
@@ -81,10 +81,32 @@
             }
         },
         methods:{
-            PrintNick(){
-                let nick="Your name is "
-                nick+=this.form.name;
-                alert(nick)
+            Log(){
+                // let url = process.env.LoginUrl + "/users";
+                let url = "http://login.hpds/users";
+                console.log(process.env.LoginUrl);
+                console.log(process.env.HPDS_LOGIN_URL);
+                console.log(url);
+                let result = axios.get(url + "/" + this.form.name)
+                .then((result) => {
+                    alert("Username occupied");
+                })
+                .catch((error) =>
+                {
+                    var result2 = axios.post(url, {
+                        Username: this.form.name,
+                        Email:this.form.email,
+                        Gender:this.form.gender
+                    })
+                .then((result2) =>
+                {
+                    this.$router.push('/ChatPage');
+                })
+                .catch((error2) =>{
+                    alert(error2);
+                })
+                })
+
             }
         }
 
