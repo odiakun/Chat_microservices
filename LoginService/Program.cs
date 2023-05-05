@@ -8,14 +8,13 @@ builder.Configuration.AddEnvironmentVariables(prefix:"HPDS_");
 //CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy( policy =>
-        {
-            policy.WithOrigins(builder.Configuration["HPDS_FRONTEND_URL"],"http://localhost:3000","https://localhost")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-        }
-    );
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.SetIsOriginAllowed(x => true)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
 });
 
 //Swagger

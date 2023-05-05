@@ -1,34 +1,128 @@
 services:
   proxy:
     image: nginx:1.21.6-alpine
+    container_name: proxy
     volumes:
       - ./proxy:/etc/nginx/templates
     ports:
       - "80:80"
-
-  frontend:
-    build: frontend
     depends_on:
-      - proxy
-    env_file:
-      - variables.env 
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - internal_net
+  
+  rabbitmq:
+    image: masstransit/rabbitmq:latest
+    container_name: rabbitmq
+    hostname: rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    networks:
+      - internal_net
 
   postgres:
     image: postgres:14.3
+    container_name: postgres
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - internal_net
+
+  mongo:
+    image: mongo:5.0.8
+    container_name: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root 
+      MONGO_INITDB_ROOT_PASSWORD: example
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - internal_net
+  
+  mongo-express:
+    image: mongo-express:1.0.0-alpha
+    container_name: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root 
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+    networks:
+      - internal_net
+
+
+  frontend:
+    build: frontend
+    container_name: frontend
+    depends_on:
+      - proxy
+    env_file:
+      - variables.env 
+    networks:
+      - internal_net
+
+  entrance:
+    build: EntranceService
+    container_name: entrance
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - variables.env
+    networks:
+      - internal_net
+
+  chat:
+    build: ChatService
+    container_name: chat
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    env_file:
+      - variables.env
+    networks:
+      - internal_net
+
 
   login:
     build: LoginService
+    container_name: login
     depends_on:
       - postgres
     env_file:
       - variables.env
+    networks:
+      - internal_net
       
 volumes:
   postgres-data:
     driver: local
+  mongo-data:
+    driver: local
+
+networks:
+      internal_net:
+              name: rsww_177788_internal
+              driver: overlay
+              attachable: true

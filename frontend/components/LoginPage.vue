@@ -66,9 +66,6 @@
      import axios from "axios";
 
     export default {
-        env: {
-            LoginUrl: process.env.HPDS_LOGIN_URL
-        },
         data(){
             return{
                 form:{
@@ -82,11 +79,8 @@
         },
         methods:{
             Log(){
-                // let url = process.env.LoginUrl + "/users";
                 let url = "http://login.hpds/users";
-                console.log(process.env.LoginUrl);
-                console.log(process.env.HPDS_LOGIN_URL);
-                console.log(url);
+                // let url = "http://login/users"
                 let result = axios.get(url + "/" + this.form.name)
                 .then((result) => {
                     alert("Username occupied");
@@ -100,6 +94,7 @@
                     })
                 .then((result2) =>
                 {
+                    this.$cookies.set("UserName", this.form.name);
                     this.$router.push('/ChatPage');
                 })
                 .catch((error2) =>{
