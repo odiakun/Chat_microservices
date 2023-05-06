@@ -15,14 +15,13 @@ builder.Services.AddSingleton<MessageService>();
 // CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
-        policy =>
-        {
-            policy.WithOrigins("http://frontend.test")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-        });
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.SetIsOriginAllowed(x => true)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -60,6 +59,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors();
 
-app.MapGet("/messages", async (MessageService messagesService) => await messagesService.GetAsync());
+app.MapGet("/messages", async (MessageService messageService) => await messageService.GetAsync());
 
 app.Run();
