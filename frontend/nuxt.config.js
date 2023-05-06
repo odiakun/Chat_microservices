@@ -1,4 +1,9 @@
 export default {
+  publicRuntimeConfig: {
+    LOGIN_URL: process.env.HPDS_LOGIN_URL || "http://localhost:8082",
+    ENTRANCE_URL: process.env.HPDS_ENTRANCE_URL || "http://localhost:8084",
+    CHAT_URL: process.env.HPDS_CHAT_URL || "http://localhost:8083"
+  },
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     title: 'frontend',

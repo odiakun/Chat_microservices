@@ -43,10 +43,10 @@ export default {
         ...mapMutations(["newMessage"]),
         updateOnlineStatus(e) {
             const {type} = e;
-            this.online = type === 'Online';
+            this.online = type === 'online';
         },
         handler: function handler(event) {
-            const url = "http://login.hpds" + "/users" + "/" + this.$cookies.get("UserName");
+            const url = this.$config.LOGIN_URL + "/users" + "/" + this.$cookies.get("UserName");
             let result = axios.delete(url, {
                 userName: this.$cookies.get("UserName")
             })
@@ -66,7 +66,7 @@ export default {
             if(v) {
 
             }else {
-                const url = "http://login.hpds" + "/users" + "/" + this.$cookies.get("UserName");
+                const url = this.$config.LOGIN_URL + "/users" + "/" + this.$cookies.get("UserName");
                 let result = axios.delete(url, {
                     userName: this.$cookies.get("UserName")
                 })
@@ -82,18 +82,18 @@ export default {
         }
     },
     mounted() {
-        window.addEventListener('Online', this.updateOnlineStatus);
-        window.addEventListener('Offline', this.updateOnlineStatus);
+        window.addEventListener('online', this.updateOnlineStatus);
+        window.addEventListener('offline', this.updateOnlineStatus);
     },
     beforeDestroy() {
-        window.removeEventListener('Online', this.updateOnlineStatus);
-        window.removeEventListener('Offline', this.updateOnlineStatus);
+        window.removeEventListener('online', this.updateOnlineStatus);
+        window.removeEventListener('offline', this.updateOnlineStatus);
     },
     created() {
-        window.addEventListener('BeforeUnload', this.handler);
-        document.addEventListener('BeforeUnload', this.handler);
+        window.addEventListener('beforeunload', this.handler);
+        document.addEventListener('beforeunload', this.handler);
 
-        let url = "http://chat.hpds" + "/messages";
+        let url = this.$config.CHAT_URL + "/messages";
         let result = axios.get(url)
         .then((result) => {
             let data = result.data;

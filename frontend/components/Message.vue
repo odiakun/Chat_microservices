@@ -29,7 +29,7 @@ export default {
         mid: String
     },
     created() {
-        this.hubConnection = chat.createHub();
+        this.hubConnection = chat.createHub(this.$config.ENTRANCE_URL + "/chat");
         
         this.hubConnection
         .start()

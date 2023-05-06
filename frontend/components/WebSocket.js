@@ -2,9 +2,9 @@
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
 
 export default {
-    createHub() {
+    createHub(url) {
         return new HubConnectionBuilder()
-            .withUrl("http://entrance.hpds" + "/chat")
+            .withUrl(url)
             .configureLogging(LogLevel.Information)
             .build();
     }

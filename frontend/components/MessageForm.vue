@@ -35,7 +35,7 @@ export default {
         if(this.user == ""){
             this.$router.push("");
         }
-        this.hubConnection = chat.createHub();
+        this.hubConnection = chat.createHub(this.$config.ENTRANCE_URL + "/chat");
 
         this.hubConnection
         .start()
