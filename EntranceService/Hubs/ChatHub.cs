@@ -25,6 +25,7 @@ namespace EntranceService.Hubs {
                 Timestamp = DateTime.Now,
                 MessId = messageId
             });
+            Console.WriteLine($"Entrance service received a delete message command, mid: {messageId}" );
         }
     }
 }

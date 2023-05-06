@@ -29,6 +29,8 @@ export default {
         mid: String
     },
     created() {
+        this.hubConnection = chat.createHub();
+        
         this.hubConnection
         .start()
         .then(() => console.log("Connected to the hub"))
@@ -46,7 +48,8 @@ export default {
     methods: {
         deleteMessage(){
             this.text = "Message deleted";
-            this.hubConnection.invoke("DeleteMessage", this.messid);
+            this.hubConnection.invoke("DeleteMessage", this.mid);
+            console.log("Deleting message commmand sent, mid: " + this.mid)
         }
     }
 };

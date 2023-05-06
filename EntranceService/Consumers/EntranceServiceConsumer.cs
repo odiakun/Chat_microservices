@@ -20,6 +20,7 @@ namespace EntranceService.Consumers {
         public async Task Consume(ConsumeContext<MessageDeleted> context) {
             var chatHub = (IHubContext<ChatHub>)_serviceProvider.GetService(typeof(IHubContext<ChatHub>));
             await chatHub.Clients.All.SendAsync("MessageDeleted", context.Message.MessId);
+            Console.WriteLine($"Entrance relaying message about message deletion, mid: {context.Message.MessId}");
         }
     }
 }

@@ -47,6 +47,7 @@ namespace ChatService.Consumers
             {
                 MessId = context.Message.MessId
             });
+            Console.WriteLine($"Chat service deleted message with mid: {context.Message.MessId}");
         }
     }
 }

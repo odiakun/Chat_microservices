@@ -47,7 +47,8 @@ export default {
             this.appendMsgToChat(msg);
         });
         this.hubConnection.on("MessageDeleted",(index) => {
-            this.$store.commit("MessageDeleted", index);
+            this.$store.commit("DeleteMessage", index);
+            console.log("deleted message, mid: " + index)
         })
     },
     computed: {
