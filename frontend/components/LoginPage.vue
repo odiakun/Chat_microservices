@@ -79,7 +79,6 @@
         },
         methods:{
             Log(){
-                // let url = "http://localhost:8082/users"
                 console.log(this.$config.LOGIN_URL)
                 console.log(this.$config.CHAT_URL)
                 console.log(this.$config.ENTRANCE_URL)

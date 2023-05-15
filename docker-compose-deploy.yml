@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  proxy:
+    image: nginx:1.21.6-alpine
+    volumes:
+      - ./proxy:/etc/nginx/templates
+    ports:
+      - "17778:80"
+    networks:
+      - internal_net
+  
+  rabbitmq:
+    image: masstransit/rabbitmq:latest
+    hostname: rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    networks:
+      - internal_net
+
+  frontend:
+    image: odiakun/frontend:latest
+    env_file:
+      - variables-deploy.env
+    networks:
+      - internal_net
+
+  entrance:
+    image: odiakun/entrance:latest
+    env_file:
+      - variables-deploy.env
+    networks:
+      - internal_net
+
+  chat:
+    image: odiakun/chat:latest
+    env_file:
+      - variables-deploy.env
+    networks:
+      - internal_net
+
+
+  login:
+    image: odiakun/login:latest
+    env_file:
+      - variables-deploy.env
+    networks:
+      - internal_net
+
+networks:
+      mongo_net:
+              external: true
+              name: admin-mongodb_default
+      postgres_net:
+              external: true
+              name: admin-postgres_default
+      internal_net:
+              name: HPDS_177788_internal
+              driver: overlay
