@@ -7,9 +7,18 @@
                 v-model="message"
                 required
                 @keydown.enter.prevent="send"
+                @input ="isTyping"
                 placeholder="Type message">
             </b-form-input>
         </b-input-group>
+
+        <div v-if="Chatting" class="d-flex align-items-center">
+            <strong>Someone is typing      </strong>
+            <b-spinner small label = "Small Spinner" type = "grow" variant = "info"></b-spinner>
+        </div>
+        <div v-else>
+            <strong></strong>
+        </div>
     </div>
 </template>
 
@@ -28,6 +37,7 @@ const generator = snowflakeGenerator(512);
 export default {
     data: () => ({
         message: "",
+        Chatting: false,
     }),
     created(){
         this.user = this.$cookies.get("UserName");
@@ -42,6 +52,19 @@ export default {
         .then(()=>console.log("Connected to the hub"))
         .catch(err => console.log(err));
 
+        this.hubConnection.on("SomeoneTyping",(name) =>{
+            if (name != this.$cookies.get("UserName"))
+            {
+            if (this.Chatting ==  false)
+            {
+            this.Chatting = true;
+            setTimeout(() => {
+                this.Chatting = false;
+            }, 700);
+            }
+            }
+        });
+
         this.hubConnection.on("MessageReceived", (msg) => {
             this.appendMsgToChat(msg);
         });
@@ -50,6 +73,8 @@ export default {
         })
         this.hubConnection.on("History", (data) => {});
         this.hubConnection.on("UserAdded", (username) => {});
+        this.hubConnection.on("UserNotFound", (username) => {});
+        this.hubConnection.on("UserFound", (username) => {});
     },
     computed: {
         ...mapState(["user"])
@@ -73,6 +98,10 @@ export default {
                 this.message = "";
             }
         },
+        isTyping()
+        {
+            this.hubConnection.invoke("Typing", this.$cookies.get("UserName"));
+        }
     }
 };
 </script>

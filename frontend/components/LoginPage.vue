@@ -80,6 +80,7 @@
             }
         },
         created(){
+            this.$cookies.set("UserName","")
             this.hubConnection = chat.createHub(this.$config.ENTRANCE_URL + "/chat");
 
             this.hubConnection
@@ -88,18 +89,30 @@
             .catch(err => console.log(err));
 
             this.hubConnection.on("UserFound", (username) => {
+                if(this.$cookies.get("UserName") == "")
+                {
                     alert("Username " + username + " occupied");
+                }
             });
 
             this.hubConnection.on("UserNotFound", (username) => {
+                if(this.$cookies.get("UserName") == "")
+                {
                 var user = new UserDTO(this.form.name,this.form.email,this.form.gender);
                 this.hubConnection.invoke("CreateUser", user);
+                }
             });
 
             this.hubConnection.on("UserAdded", (username) => {
+                if(this.$cookies.get("UserName") == "" || this.$cookies.get("UserName") == username)
+                {
                 this.$cookies.set("UserName", username);
                 this.$router.push("/ChatPage");
+                }
             });
+            this.hubConnection.on("SomeoneTyping",() =>{});
+            this.hubConnection.on("MessageDeleted", (index) => {});
+            this.hubConnection.on("MessageReceived", (msg) => {});
         },
         methods:{
             Log(){

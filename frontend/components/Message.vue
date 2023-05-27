@@ -37,10 +37,12 @@ export default {
         .catch(er => console.log(err));
 
         this.hubConnection.on("MessageDeleted", (index) => {});
-
         this.hubConnection.on("MessageReceived", (msg) => {});
         this.hubConnection.on("History", (data) => {});
         this.hubConnection.on("UserAdded", (username) => {});
+        this.hubConnection.on("SomeoneTyping",() =>{});
+        this.hubConnection.on("UserNotFound", (username) => {});
+        this.hubConnection.on("UserFound", (username) => {});
     },
     computed: {
         isDisabled() {

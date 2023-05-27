@@ -52,5 +52,6 @@ namespace EntranceService.Hubs {
                 Timestamp = DateTime.Now
             });
         }
+        public async Task Typing(String name) => await Clients.All.SendAsync("SomeoneTyping", name);
     }
 }
