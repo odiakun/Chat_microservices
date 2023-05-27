@@ -12,7 +12,6 @@ namespace EntranceService.Hubs {
         }
 
         public async Task SendMessage(Message message){
-            Console.WriteLine($"Message received at entrance.hpds hub, message id: {message.mid}");
             await _publishEndpoint.Publish<AddMessage>(new {
                 CommandId = NewId.NextGuid(),
                 Timestamp = DateTime.Now,
@@ -25,7 +24,20 @@ namespace EntranceService.Hubs {
                 Timestamp = DateTime.Now,
                 MessId = messageId
             });
-            Console.WriteLine($"Entrance service received a delete message command, mid: {messageId}" );
+        }
+        public async Task GetUser(String username){
+            await _publishEndpoint.Publish<GetUser>(new {
+                CommandId = NewId.NextGuid(),
+                Timestamp = DateTime.Now,
+                Username = username
+            });
+        }
+        public async Task CreateUser(User user){
+            await _publishEndpoint.Publish<AddUser>(new {
+                CommandId = NewId.NextGuid(),
+                Timestamp = DateTime.Now,
+                UserDTO = user
+            });
         }
     }
 }

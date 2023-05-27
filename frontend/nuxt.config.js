@@ -1,9 +1,7 @@
 export default {
   publicRuntimeConfig: {
-    LOGIN_URL: process.env.HPDS_LOGIN_URL || "http://localhost:8082",
     ENTRANCE_URL: process.env.HPDS_ENTRANCE_URL || "http://localhost:8084",
     CHAT_URL: process.env.HPDS_CHAT_URL || "http://localhost:8083"
-    // LOGIN_URL: process.env.HPDS_LOGIN_URL || "http://login",
     // ENTRANCE_URL: process.env.HPDS_ENTRANCE_URL || "http://entrance",
     // CHAT_URL: process.env.HPDS_CHAT_URL || "http://chat"
   },

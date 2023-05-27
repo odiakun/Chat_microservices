@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-
+using LoginService.Models;
+using MassTransit;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables(prefix:"HPDS_");
@@ -22,8 +24,22 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Database
+// builder.Services.AddDbContext<UserDb>(opt=>opt.UseNpgsql(builder.Configuration["HPDS_DB_CONN_STRING"]), ServiceLifetime.Scoped);
 builder.Services.AddDbContext<UserDb>(opt=>opt.UseNpgsql(builder.Configuration["HPDS_DB_CONN_STRING"]));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddMassTransit(x => {
+    x.SetKebabCaseEndpointNameFormatter();
+    var entryAssembly = Assembly.GetEntryAssembly();
+    x.AddConsumers(entryAssembly);
+    x.UsingRabbitMq((context, cfg) => {
+        cfg.Host(builder.Configuration["HPDS_RABBITMQ_HOST"], builder.Configuration["HPDS_RABBITMQ_VHOST"], h => {
+            h.Username(builder.Configuration["HPDS_RABBITMQ_USERNAME"]);
+            h.Password(builder.Configuration["HPDS_RABBITMQ_PASSWORD"]);
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 
@@ -41,37 +57,6 @@ app.UseSwaggerUI(option=>
     option.RoutePrefix = string.Empty;
 });
 
-app.MapGet("/users/{userName}", async (string userName, UserDb db) =>
-    await db.Users.SingleOrDefaultAsync(x => x.Username == userName)
-        is User user ? Results.Ok(new UserDTO(user)) : Results.NotFound())
-.WithName("GetUser");
-
-app.MapPost("/users", async (PostUserDTO userDTO, UserDb db) =>
-{
-    var user = new User{
-        Username = userDTO.Username,
-        Email =userDTO.Email,
-        Gender = userDTO.Gender
-    };
-    db.Users.Add(user);
-    await db.SaveChangesAsync();
-
-    return Results.Created($"/users/{user.Username}", new UserDTO(user));
-})
-.WithName("PostUser");
-
-app.MapDelete("/users/{userName}", async (string userName, UserDb db) =>
-{
-    if (await db.Users.SingleOrDefaultAsync(x => x.Username == userName) is User user)
-    {
-        db.Users.Remove(user);
-        await db.SaveChangesAsync();
-        return Results.Ok(new UserDTO(user));
-    }
-    return Results.NotFound();
-})
-.WithName("DeleteUser");
-
 using(var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -84,35 +69,6 @@ using(var scope = app.Services.CreateScope())
 
 
 app.Run();
-
-public class User
-{
-    public int Id { get; set; }
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public string Gender { get; set; }
-}
-
-public class UserDTO{
-    public int Id { get; set; }
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public string Gender { get; set; }
-
-    public UserDTO(){ }
-    public UserDTO(User user) =>
-    (Id, Username, Email, Gender) = (user.Id, user.Username, user.Email, user.Gender);
-}
-
-public class PostUserDTO{
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public string Gender { get; set; }
-
-    public PostUserDTO(){ }
-    public PostUserDTO(User user) =>
-    (Username, Email, Gender) = (user.Username, user.Email, user.Gender);
-}
 
 public class UserDb : DbContext
 {

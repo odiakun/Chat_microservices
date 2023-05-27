@@ -43,12 +43,10 @@ export default {
         .catch(err => console.log(err));
 
         this.hubConnection.on("MessageReceived", (msg) => {
-            console.log("received message: " + msg.text + "id: " + msg.mid)
             this.appendMsgToChat(msg);
         });
         this.hubConnection.on("MessageDeleted",(index) => {
             this.$store.commit("DeleteMessage", index);
-            console.log("deleted message, mid: " + index)
         })
     },
     computed: {

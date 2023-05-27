@@ -30,6 +30,8 @@ services:
 
   entrance:
     image: odiakun/entrance:latest
+    ports:
+      - "17779:80"
     env_file:
       - variables-deploy.env
     networks:

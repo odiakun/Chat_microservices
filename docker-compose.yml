@@ -16,6 +16,8 @@ services:
     image: masstransit/rabbitmq:latest
     container_name: rabbitmq
     hostname: rabbitmq
+    ports:
+      - "15672:15672"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s
@@ -86,12 +88,12 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    ports:
+      - "8084:80"
     env_file:
       - variables.env
     networks:
       - internal_net
-    ports:
-      - "8084:80"
 
   chat:
     build: ChatService

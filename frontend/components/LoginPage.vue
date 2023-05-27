@@ -64,6 +64,8 @@
 
 <script>
      import axios from "axios";
+     import chat from './WebSocket'
+     import UserDTO from "../utils/UserDTO"
 
     export default {
         data(){
@@ -77,33 +79,31 @@
                 show: true
             }
         },
+        created(){
+            this.hubConnection = chat.createHub(this.$config.ENTRANCE_URL + "/chat");
+
+            this.hubConnection
+            .start()
+            .then(()=>console.log("Connected to the hub"))
+            .catch(err => console.log(err));
+
+            this.hubConnection.on("UserFound", (username) => {
+                alert("Username " + username + " occupied");
+            });
+
+            this.hubConnection.on("UserNotFound", (username) => {
+                var user = new UserDTO(this.form.name,this.form.email,this.form.gender);
+                this.hubConnection.invoke("CreateUser", user);
+            });
+
+            this.hubConnection.on("UserAdded", (username) => {
+                this.$cookies.set("UserName", username);
+                this.$router.push("/ChatPage");
+            });
+        },
         methods:{
             Log(){
-                console.log(this.$config.LOGIN_URL)
-                console.log(this.$config.CHAT_URL)
-                console.log(this.$config.ENTRANCE_URL)
-                let url = this.$config.LOGIN_URL + "/users"
-                let result = axios.get(url + "/" + this.form.name)
-                .then((result) => {
-                    alert("Username occupied");
-                })
-                .catch((error) =>
-                {
-                    var result2 = axios.post(url, {
-                        Username: this.form.name,
-                        Email:this.form.email,
-                        Gender:this.form.gender
-                    })
-                .then((result2) =>
-                {
-                    this.$cookies.set("UserName", this.form.name);
-                    this.$router.push('/ChatPage');
-                })
-                .catch((error2) =>{
-                    alert(error2);
-                })
-                })
-
+                this.hubConnection.invoke("GetUser", this.form.name);
             }
         }
 
