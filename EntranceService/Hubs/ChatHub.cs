@@ -39,5 +39,18 @@ namespace EntranceService.Hubs {
                 UserDTO = user
             });
         }
+        public async Task DeleteUser(string username){
+            await _publishEndpoint.Publish<DeleteUser>(new {
+                CommandID = NewId.NextGuid(),
+                Timestamp = DateTime.Now,
+                Username = username
+            });
+        }
+        public async Task GetHistory(){
+            await _publishEndpoint.Publish<GetHistory>(new {
+                CommandID = NewId.NextGuid(),
+                Timestamp = DateTime.Now
+            });
+        }
     }
 }

@@ -6,7 +6,8 @@ namespace ChatService.Consumers
     using Services;
     using ChatService.Models;
 
-    public class ChatServiceConsumer : IConsumer<AddMessage>, IConsumer<DeleteMessage>
+    public class ChatServiceConsumer : IConsumer<AddMessage>, IConsumer<DeleteMessage>,
+    IConsumer<GetHistory>
     {
         private readonly MessageService _messagesService;
 
@@ -15,7 +16,6 @@ namespace ChatService.Consumers
 
         public async Task Consume(ConsumeContext<AddMessage> context)
         {
-            Console.WriteLine($"Chat.hpds received AddMessage message, message id: {context.Message.Message.mid}");
             Message message = new Message 
             {
                 MessId = context.Message.Message.MessId,
@@ -29,7 +29,6 @@ namespace ChatService.Consumers
             {
                 Message = context.Message.Message
             });
-            Console.WriteLine($"Chat.hpds sending message, message id: {context.Message.Message.mid}");
         }
         public async Task Consume(ConsumeContext<DeleteMessage> context)
         {
@@ -47,7 +46,14 @@ namespace ChatService.Consumers
             {
                 MessId = context.Message.MessId
             });
-            Console.WriteLine($"Chat service deleted message with mid: {context.Message.MessId}");
+        }
+        public async Task Consume(ConsumeContext<GetHistory> context)
+        {
+            List<Message> messages = await _messagesService.GetAsync();
+
+            await context.Publish<History>(new {
+                Messages = messages
+            });
         }
     }
 }

@@ -33,12 +33,14 @@ export default {
         
         this.hubConnection
         .start()
-        .then(() => console.log("Connected to the hub"))
+        .then()
         .catch(er => console.log(err));
 
         this.hubConnection.on("MessageDeleted", (index) => {});
 
         this.hubConnection.on("MessageReceived", (msg) => {});
+        this.hubConnection.on("History", (data) => {});
+        this.hubConnection.on("UserAdded", (username) => {});
     },
     computed: {
         isDisabled() {
@@ -49,7 +51,6 @@ export default {
         deleteMessage(){
             this.text = "Message deleted";
             this.hubConnection.invoke("DeleteMessage", this.mid);
-            console.log("Deleting message commmand sent, mid: " + this.mid)
         }
     }
 };

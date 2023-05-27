@@ -84,11 +84,11 @@
 
             this.hubConnection
             .start()
-            .then(()=>console.log("Connected to the hub"))
+            .then()
             .catch(err => console.log(err));
 
             this.hubConnection.on("UserFound", (username) => {
-                alert("Username " + username + " occupied");
+                    alert("Username " + username + " occupied");
             });
 
             this.hubConnection.on("UserNotFound", (username) => {

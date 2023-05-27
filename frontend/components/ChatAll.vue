@@ -28,6 +28,7 @@ import Message from '@/components/Message';
 import MessageForm from '@/components/MessageForm';
 import { mapState, mapMutations } from 'vuex';
 import axios from "axios";
+import chat from './WebSocket'
 
 export default {
     components: {
@@ -46,16 +47,9 @@ export default {
             this.online = type === 'online';
         },
         handler: function handler(event) {
-            const url = this.$config.LOGIN_URL + "/users" + "/" + this.$cookies.get("UserName");
-            let result = axios.delete(url, {
-                userName: this.$cookies.get("UserName")
-            })
-            .then((result) => {
-                console.log(result);
-            })
-            .catch((err) => {
-                console.log(err)
-            });
+            if (this.hubConnection && this.hubConnection.state === 'Connected') {
+            this.hubConnection.invoke("DeleteUser", this.$cookies.get("UserName"));
+            }
         }
     },
     computed: {
@@ -66,16 +60,9 @@ export default {
             if(v) {
 
             }else {
-                const url = this.$config.LOGIN_URL + "/users" + "/" + this.$cookies.get("UserName");
-                let result = axios.delete(url, {
-                    userName: this.$cookies.get("UserName")
-                })
-                .then((result) => {
-                    console.log(result);
-                })
-                .catch((err) => {
-                    console.log(err)
-                });
+                if (this.hubConnection && this.hubConnection.state === 'Connected') {
+                this.hubConnection.invoke("DeleteUser", this.$cookies.get("UserName"));
+                }
                 alert("Connection lost. Log again.");
                 this.$router.push("");
             }
@@ -93,14 +80,28 @@ export default {
         window.addEventListener('beforeunload', this.handler);
         document.addEventListener('beforeunload', this.handler);
 
-        let url = this.$config.CHAT_URL + "/messages";
-        let result = axios.get(url)
-        .then((result) => {
-            let data = result.data;
-            for(let i=0;i<data.length;i++){
-                this.$store.commit('newMessage', data[i]);
+        this.hubConnection = chat.createHub(this.$config.ENTRANCE_URL + "/chat");
+
+        this.hubConnection
+        .start()
+        .then(() => this.hubConnection.invoke("GetHistory"))
+        .catch(err => console.log(err));
+
+        var control = 0;
+
+        this.hubConnection.on("History", (data) => {
+            if (control == 0)
+            {
+                for(let i=0;i<data.length;i++)
+                {
+                    this.$store.commit('newMessage', data[i]);
+                }
+                control = 1;
             }
         })
+        this.hubConnection.on("UserAdded", (username) => {});
+        this.hubConnection.on("MessageDeleted", (index) => {});
+        this.hubConnection.on("MessageReceived", (msg) => {});
     }
 };
 

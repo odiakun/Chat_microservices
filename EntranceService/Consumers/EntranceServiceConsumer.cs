@@ -6,7 +6,8 @@ namespace EntranceService.Consumers {
     using EntranceService.Hubs;
 
     public class EntranceServiceConsumer :
-    IConsumer<MessageAdded>, IConsumer<MessageDeleted>, IConsumer<UserFound>, IConsumer<UserNotFound>, IConsumer<UserAdded> {
+    IConsumer<MessageAdded>, IConsumer<MessageDeleted>, IConsumer<UserFound>,
+    IConsumer<UserNotFound>, IConsumer<UserAdded>, IConsumer<History>{
         protected readonly IServiceProvider _serviceProvider;
 
         public EntranceServiceConsumer(IServiceProvider serviceProvider){
@@ -31,6 +32,10 @@ namespace EntranceService.Consumers {
         public async Task Consume(ConsumeContext<UserAdded> context) {
             var chatHub = (IHubContext<ChatHub>)_serviceProvider.GetService(typeof(IHubContext<ChatHub>));
             await chatHub.Clients.All.SendAsync("UserAdded", context.Message.Username);
+        }
+        public async Task Consume(ConsumeContext<History> context) {
+            var chatHub = (IHubContext<ChatHub>)_serviceProvider.GetService(typeof(IHubContext<ChatHub>));
+            await chatHub.Clients.All.SendAsync("History", context.Message.Messages);
         }
     }
 }

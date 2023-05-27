@@ -59,6 +59,4 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors();
 
-app.MapGet("/messages", async (MessageService messageService) => await messageService.GetAsync());
-
 app.Run();

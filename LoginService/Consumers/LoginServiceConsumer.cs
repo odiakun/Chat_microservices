@@ -46,9 +46,9 @@ namespace LoginService.Consumers{
             {
                 _db.Users.Remove(user);
                 await _db.SaveChangesAsync();
-                await context.Publish<UserDeleted>(new {
-                    Username = username
-                });
+                // await context.Publish<UserDeleted>(new {
+                //     Username = username
+                // });
             }
             else
             {

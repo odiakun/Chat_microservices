@@ -48,6 +48,8 @@ export default {
         this.hubConnection.on("MessageDeleted",(index) => {
             this.$store.commit("DeleteMessage", index);
         })
+        this.hubConnection.on("History", (data) => {});
+        this.hubConnection.on("UserAdded", (username) => {});
     },
     computed: {
         ...mapState(["user"])
