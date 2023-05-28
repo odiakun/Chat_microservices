@@ -113,6 +113,10 @@
             this.hubConnection.on("SomeoneTyping",() =>{});
             this.hubConnection.on("MessageDeleted", (index) => {});
             this.hubConnection.on("MessageReceived", (msg) => {});
+            this.hubConnection.on("ImageAdded", (url) => {});
+            this.hubConnection.on("ImageHistory", (images) => {});
+            this.hubConnection.on("History", (images) => {});
+            this.hubConnection.on("ImageDeleted", (messId) => {});
         },
         methods:{
             Log(){

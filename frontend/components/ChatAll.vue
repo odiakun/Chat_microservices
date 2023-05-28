@@ -14,6 +14,7 @@
        :timestamp="misag.timestamp"
         :messid="misag.messid"
         :mid="misag.mid"
+        :image = "misag.url"
      />
         </div>
         
@@ -26,6 +27,7 @@
 <script>
 import Message from '@/components/Message';
 import MessageForm from '@/components/MessageForm';
+import CombinedMessage from "../utils/CombinedMessage"
 import { mapState, mapMutations } from 'vuex';
 import axios from "axios";
 import chat from './WebSocket'
@@ -84,8 +86,13 @@ export default {
 
         this.hubConnection
         .start()
-        .then(() => this.hubConnection.invoke("GetHistory"))
+        .then(() => {
+            this.hubConnection.invoke("GetHistory")
+            this.hubConnection.invoke("GetImageHistory");
+    })
         .catch(err => console.log(err));
+
+        
 
         var control = 0;
 
@@ -94,17 +101,43 @@ export default {
             {
                 for(let i=0;i<data.length;i++)
                 {
-                    this.$store.commit('newMessage', data[i]);
+                    var message = new CombinedMessage(data[i].mid,data[i].mid,data[i].user,data[i].text,null)
+                    this.$store.commit('newMessage', message);
                 }
                 control = 1;
             }
         })
+
+        var img_control = 0;
+
+        this.hubConnection.on("ImageHistory", (images) => {
+            if (img_control == 0)
+            {
+                for(let i=0; i<images.length;i++)
+                {
+                    var count = this.$store.getters.IsUnique(images[i].mid)
+                    if (count == 0){
+                        var message = new CombinedMessage(images[i].mid,images[i].mid,images[i].user," ",images[i].url)
+                        this.$store.commit('newMessage', message);
+                    }
+                    else{
+                        var message = this.$store.getters.getMessage(images[i].mid);
+                        var modifiedMessage = new CombinedMessage(message.mid,message.mid,message.user,message.text,images[i].url);
+                        this.$store.commit("replaceMessage", modifiedMessage)
+                    }
+                }
+                img_control = 1;
+            }
+        });
+
         this.hubConnection.on("UserAdded", (username) => {});
         this.hubConnection.on("MessageDeleted", (index) => {});
         this.hubConnection.on("MessageReceived", (msg) => {});
         this.hubConnection.on("SomeoneTyping",() =>{});
         this.hubConnection.on("UserNotFound", (username) => {});
         this.hubConnection.on("UserFound", (username) => {});
+        this.hubConnection.on("ImageAdded", (url) => {});
+        this.hubConnection.on("ImageDeleted", (messId) => {});
     }
 };
 

@@ -7,7 +7,8 @@ namespace EntranceService.Consumers {
 
     public class EntranceServiceConsumer :
     IConsumer<MessageAdded>, IConsumer<MessageDeleted>, IConsumer<UserFound>,
-    IConsumer<UserNotFound>, IConsumer<UserAdded>, IConsumer<History>{
+    IConsumer<UserNotFound>, IConsumer<UserAdded>, IConsumer<History>,
+    IConsumer<ImageAdded>, IConsumer<ImageHistory>, IConsumer<ImageDeleted>{
         protected readonly IServiceProvider _serviceProvider;
 
         public EntranceServiceConsumer(IServiceProvider serviceProvider){
@@ -36,6 +37,19 @@ namespace EntranceService.Consumers {
         public async Task Consume(ConsumeContext<History> context) {
             var chatHub = (IHubContext<ChatHub>)_serviceProvider.GetService(typeof(IHubContext<ChatHub>));
             await chatHub.Clients.All.SendAsync("History", context.Message.Messages);
+        }
+        public async Task Consume(ConsumeContext<ImageAdded> context) {
+            var chatHub = (IHubContext<ChatHub>)_serviceProvider.GetService(typeof(IHubContext<ChatHub>));
+            await chatHub.Clients.All.SendAsync("ImageAdded", context.Message.image);
+        }
+        public async Task Consume(ConsumeContext<ImageHistory> context) {
+            Console.WriteLine(context.Message.Images[0].url);
+            var chatHub = (IHubContext<ChatHub>)_serviceProvider.GetService(typeof(IHubContext<ChatHub>));
+            await chatHub.Clients.All.SendAsync("ImageHistory",context.Message.Images);
+        }
+        public async Task Consume(ConsumeContext<ImageDeleted> context) {
+            var chatHub = (IHubContext<ChatHub>)_serviceProvider.GetService(typeof(IHubContext<ChatHub>));
+            await chatHub.Clients.All.SendAsync("ImageDeleted", context.Message.MessId);
         }
     }
 }

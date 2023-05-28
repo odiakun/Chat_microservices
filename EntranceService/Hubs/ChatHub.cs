@@ -53,5 +53,38 @@ namespace EntranceService.Hubs {
             });
         }
         public async Task Typing(String name) => await Clients.All.SendAsync("SomeoneTyping", name);
+        public async Task AddImage(ImageFront image)
+        {
+            byte[] imageData = Convert.FromBase64String(image.base64);
+            RawImage rawImage = new RawImage
+            {
+                MessId = image.MessId,
+                User = image.User,
+                ImageBytes = imageData,
+                mid = image.mid,
+                Timestamp = image.Timestamp
+            };
+
+            await _publishEndpoint.Publish<AddImage>(new {
+                CommandId = NewId.NextGuid(),
+                Timestamp = DateTime.Now,
+                rawImage = rawImage
+            });
+        }
+        public async Task GetImageHistory()
+        {
+            await _publishEndpoint.Publish<GetImageHistory>(new {
+                CommandID = NewId.NextGuid(),
+                Timestamp = DateTime.Now
+            });
+        }
+        public async Task DeleteImage(string messageId)
+        {
+            await _publishEndpoint.Publish<DeleteImage>(new {
+                CommandId = NewId.NextGuid(),
+                Timestamp = DateTime.Now,
+                MessId = messageId
+            });
+        }
     }
 }

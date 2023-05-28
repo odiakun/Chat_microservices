@@ -1,6 +1,9 @@
 <template>
     <div>
         <b-input-group class="mb-2">
+
+            <b-input-group-prepend>{{this.$cookies.get("UserName")}}</b-input-group-prepend>
+
             <b-form-input
                 id="message"
                 type="text"
@@ -10,6 +13,18 @@
                 @input ="isTyping"
                 placeholder="Type message">
             </b-form-input>
+
+            <b-form-file
+            ref="file-input"
+                    id="file"
+                    v-model="file"
+                    :state="Boolean(file)"
+                    @keyup.native.enter="send"
+                    placeholder="Choose a file or drop it here..."
+                    drop-placeholder="Drop file here..."
+                    accept="image/jpeg, image/png, image/jpg"
+            ></b-form-file>
+
         </b-input-group>
 
         <div v-if="Chatting" class="d-flex align-items-center">
@@ -29,6 +44,8 @@
 <script>
 import chat from './WebSocket'
 import Message from '../utils/Message'
+import ImageMessage from "../utils/ImageMessage"
+import CombinedMessage from "../utils/CombinedMessage"
 import {snowflakeGenerator} from 'snowflake-id-js'; //snowflake id generation
 import { mapState, mapMutations } from 'vuex';
 
@@ -38,6 +55,7 @@ export default {
     data: () => ({
         message: "",
         Chatting: false,
+        file: null,
     }),
     created(){
         this.user = this.$cookies.get("UserName");
@@ -71,6 +89,17 @@ export default {
         this.hubConnection.on("MessageDeleted",(index) => {
             this.$store.commit("DeleteMessage", index);
         })
+
+        this.hubConnection.on("ImageAdded", (img) => {
+            this.appendImgToChat(img);
+        });
+
+        this.hubConnection.on("ImageDeleted", (messId) => {
+            this.$store.commit("DeleteMessage", messId);
+        });
+
+
+        this.hubConnection.on("ImageHistory", (images) => {});
         this.hubConnection.on("History", (data) => {});
         this.hubConnection.on("UserAdded", (username) => {});
         this.hubConnection.on("UserNotFound", (username) => {});
@@ -80,22 +109,55 @@ export default {
         ...mapState(["user"])
     },
     methods: {
-        ...mapMutations(["newMessage"]),
+        ...mapMutations(["newMessage", "replaceMessage"]),
         appendMsgToChat(msg) {
-            console.log("Firing up appendMsgToChat method")
-            if(this.$store.getters.IsUnique(msg.mid) == 0) {
-                this.$store.commit("newMessage", msg)
-                console.log("commited a new message to messages")
+            var count = this.$store.getters.IsUnique(msg.mid)
+            if(count == 0) {
+                var message = new CombinedMessage(msg.mid,msg.mid,msg.user,msg.text,null)
+                this.$store.commit("newMessage", message)
+            }
+            else if(count == 1){
+                var message = this.$store.getters.getMessage(msg.mid);
+                if(message.text != msg.text)
+                {
+                var modifiedMessage = new CombinedMessage(message.mid,message.mid,message.user,msg.text,message.url);
+                this.$store.commit("replaceMessage", modifiedMessage)
+                }
+            }
+        },
+        appendImgToChat(msg) {
+            var count = this.$store.getters.IsUnique(msg.mid)
+            if(count == 0) {
+                var message = new CombinedMessage(msg.mid,msg.mid,msg.user,"",msg.url)
+                this.$store.commit("newMessage", message)
+            }
+            else if(count == 1){
+                var message = this.$store.getters.getMessage(msg.mid);
+                if(message.image != msg.url)
+                {
+                var modifiedMessage = new CombinedMessage(message.mid,message.mid,message.user,message.text,msg.url);
+                this.$store.commit("replaceMessage", modifiedMessage)
+                }
             }
         },
         send() {
-            console.log("fire up send method")
+            var file = document.querySelector('input[type=file]').files[0];
+            let msgId = generator.next().value;
             if(this.message.length > 0){
-                console.log("sent the message");
-                let msgId = generator.next().value;
                 const messag = new Message(msgId,msgId,this.$cookies.get("UserName"),this.message);
                 this.hubConnection.invoke("SendMessage", messag);
                 this.message = "";
+            }
+            if(file){
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onloadend = () => {
+                var base64 = reader.result;
+                base64 = base64.split(",")[1];
+                const image_message = new ImageMessage(msgId,msgId,this.$cookies.get("UserName"),base64)
+                this.hubConnection.invoke("AddImage", image_message)
+                this.$refs['file-input'].reset()
+                }
             }
         },
         isTyping()

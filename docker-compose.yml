@@ -107,9 +107,29 @@ services:
       - variables.env
     networks:
       - internal_net
-    ports:
-      - "8083:80"
 
+  image:
+    build: ImageService
+    container_name: image
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    env_file:
+      - variables.env
+    networks:
+      - internal_net
+    volumes:
+      - C:\Users\oksan\Desktop\Studia\INFA\HPDS\ImageTest:/app/Images
+
+  image-server:
+    image: node:14-alpine
+    command: npx http-server /app/Images -p 8090
+    volumes:
+      - C:\Users\oksan\Desktop\Studia\INFA\HPDS\ImageTest:/app/Images
+    ports:
+      - 8090:8090
 
   login:
     build: LoginService
@@ -120,8 +140,6 @@ services:
       - variables.env
     networks:
       - internal_net
-    ports:
-      - "8082:80"
       
 volumes:
   postgres-data:
